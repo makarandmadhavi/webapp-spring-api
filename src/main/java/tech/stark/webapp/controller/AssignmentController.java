@@ -131,32 +131,32 @@ public class AssignmentController {
         return isAssignment.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @PostMapping(path = "/{id}/submission")
-    public ResponseEntity<Submission> submitAssignment(@RequestBody String submitRequest,
-                                                @PathVariable String id,
-                                                HttpServletRequest request) {
-        JsonNode requestJson = validationService.validateJson(submitRequest, SUBMISSION_SCHEMA);
-        ObjectMapper objectMapper = new ObjectMapper();
-        Submission submission = null;
-        try {
-            submission = objectMapper.treeToValue(requestJson, Submission.class);
-        } catch (JsonProcessingException e) {
-            throw new BadRequestException(e.getMessage());
-        }
-        submission.setAssignment_id(id);
-
-        try {
-            URL url = new URL(submission.getSubmission_url());
-            if (!submission.getSubmission_url().toLowerCase().endsWith(".zip")) {
-                throw new BadRequestException("Invalid URL: URL must end with '.zip'");
-            }
-        } catch (MalformedURLException e) {
-            throw new BadRequestException("Invalid URL: " + submission.getSubmission_url() + " " + e.getMessage());
-        }
-
-        // Check if the URL ends with ".zip"
-
-        Optional<Submission> opt = assignmentService.postSubmission(submission,id);
-        return ResponseEntity.ok(submission);
-    }
+//    @PostMapping(path = "/{id}/submission")
+//    public ResponseEntity<Submission> submitAssignment(@RequestBody String submitRequest,
+//                                                @PathVariable String id,
+//                                                HttpServletRequest request) {
+//        JsonNode requestJson = validationService.validateJson(submitRequest, SUBMISSION_SCHEMA);
+//        ObjectMapper objectMapper = new ObjectMapper();
+//        Submission submission = null;
+//        try {
+//            submission = objectMapper.treeToValue(requestJson, Submission.class);
+//        } catch (JsonProcessingException e) {
+//            throw new BadRequestException(e.getMessage());
+//        }
+//        submission.setAssignment_id(id);
+//
+//        try {
+//            URL url = new URL(submission.getSubmission_url());
+//            if (!submission.getSubmission_url().toLowerCase().endsWith(".zip")) {
+//                throw new BadRequestException("Invalid URL: URL must end with '.zip'");
+//            }
+//        } catch (MalformedURLException e) {
+//            throw new BadRequestException("Invalid URL: " + submission.getSubmission_url() + " " + e.getMessage());
+//        }
+//
+//        // Check if the URL ends with ".zip"
+//
+//        Optional<Submission> opt = assignmentService.postSubmission(submission,id);
+//        return ResponseEntity.ok(submission);
+//    }
 }

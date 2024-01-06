@@ -38,8 +38,8 @@ public class AssignmentService {
 
     private final Logger LOGGER = LoggerFactory.getLogger(AssignmentService.class);
 
-    @Value("${aws.sns.topicArn}")
-    private String topic_arn;
+//    @Value("${aws.sns.topicArn}")
+//    private String topic_arn;
     @PersistenceContext
     private EntityManager entityManager;
     private final SecurityService securityService;
@@ -50,15 +50,12 @@ public class AssignmentService {
 
     private final SubmissionRepository submissionRepository;
 
-    private SnsClient snsClient;
-
     @Autowired
-    public AssignmentService(SecurityService securityService, AccountService accountService, AssignmentRepository assignmentRepository, SubmissionRepository submissionRepository, SnsClient snsClient) {
+    public AssignmentService(SecurityService securityService, AccountService accountService, AssignmentRepository assignmentRepository, SubmissionRepository submissionRepository) {
         this.securityService = securityService;
         this.accountService = accountService;
         this.assignmentRepository = assignmentRepository;
         this.submissionRepository = submissionRepository;
-        this.snsClient = snsClient;
     }
 
     public  List<Assignment> getAssignments(String id) {
@@ -118,58 +115,58 @@ public class AssignmentService {
         }
     }
 
-    public Optional<Submission> postSubmission(Submission submission, String id) {
-        if(!assignmentRepository.existsById(id)){
-            throw new BadRequestException("assignment id "+id+" doesn't exist");
-        }
-        Assignment assignment = assignmentRepository.findById(id).get();
-
-        Instant deadline = Instant.parse(assignment.getDeadline());
-        Instant currentInstant = Instant.now();
-        if(currentInstant.isAfter(deadline)) {
-            throw new BadRequestException("Assignment Deadline passed, you can no longer submit for this assignment");
-        }
-
-        submission.setAssignment_id(id);
-        String now = Instant.now().toString();
-        submission.setSubmission_date(now);
-        submission.setSubmission_updated(now);
-        submission.setUser_email(securityService.getUser().getUsername());
-
-        List<Submission> submissionList = get_submissions_by_user_assignment(submission.getUser_email(), assignment.getId());
-        LOGGER.info(submissionList.toString());
-
-        if(assignment.getNum_of_attempts()<= submissionList.size()){
-            throw new BadRequestException("Number of attempts exceeded for assignment");
-        }
-
-        try {
-            submissionRepository.save(submission);
-
-        } catch (Exception e){
-            LOGGER.error(e.getMessage());
-            throw new ServiceUnavailableException("");
-        }
-        TopicMessage message = new TopicMessage();
-        message.setAttempts(submissionList.size() + 1);
-        message.setSubmission(submission);
-        message.setAccount(accountService.getByEmail(submission.getUser_email()).get());
-        message.setAssignment(assignment);
-        LOGGER.info("Posting message: "+message.toString());
-        try {
-            PublishRequest request = PublishRequest.builder()
-                    .message(message.toString())
-                    .topicArn(topic_arn)
-                    .build();
-
-            PublishResponse result = snsClient.publish(request);
-            LOGGER.info(result.messageId() + " Message sent. Status is " + result.sdkHttpResponse().statusCode());
-
-        } catch (SnsException e) {
-            LOGGER.error(e.awsErrorDetails().errorMessage());
-        }
-        return Optional.of(submission);
-    }
+//    public Optional<Submission> postSubmission(Submission submission, String id) {
+//        if(!assignmentRepository.existsById(id)){
+//            throw new BadRequestException("assignment id "+id+" doesn't exist");
+//        }
+//        Assignment assignment = assignmentRepository.findById(id).get();
+//
+//        Instant deadline = Instant.parse(assignment.getDeadline());
+//        Instant currentInstant = Instant.now();
+//        if(currentInstant.isAfter(deadline)) {
+//            throw new BadRequestException("Assignment Deadline passed, you can no longer submit for this assignment");
+//        }
+//
+//        submission.setAssignment_id(id);
+//        String now = Instant.now().toString();
+//        submission.setSubmission_date(now);
+//        submission.setSubmission_updated(now);
+//        submission.setUser_email(securityService.getUser().getUsername());
+//
+//        List<Submission> submissionList = get_submissions_by_user_assignment(submission.getUser_email(), assignment.getId());
+//        LOGGER.info(submissionList.toString());
+//
+//        if(assignment.getNum_of_attempts()<= submissionList.size()){
+//            throw new BadRequestException("Number of attempts exceeded for assignment");
+//        }
+//
+//        try {
+//            submissionRepository.save(submission);
+//
+//        } catch (Exception e){
+//            LOGGER.error(e.getMessage());
+//            throw new ServiceUnavailableException("");
+//        }
+//        TopicMessage message = new TopicMessage();
+//        message.setAttempts(submissionList.size() + 1);
+//        message.setSubmission(submission);
+//        message.setAccount(accountService.getByEmail(submission.getUser_email()).get());
+//        message.setAssignment(assignment);
+//        LOGGER.info("Posting message: "+message.toString());
+//        try {
+//            PublishRequest request = PublishRequest.builder()
+//                    .message(message.toString())
+//                    .topicArn(topic_arn)
+//                    .build();
+//
+//            PublishResponse result = snsClient.publish(request);
+//            LOGGER.info(result.messageId() + " Message sent. Status is " + result.sdkHttpResponse().statusCode());
+//
+//        } catch (SnsException e) {
+//            LOGGER.error(e.awsErrorDetails().errorMessage());
+//        }
+//        return Optional.of(submission);
+//    }
 
     public List<Submission> get_submissions_by_user_assignment(String user_email, String assignment_id) {
         try {
