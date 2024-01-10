@@ -3,6 +3,7 @@ package tech.stark.webapp.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.micrometer.core.annotation.Timed;
 import jakarta.annotation.Nullable;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
@@ -42,6 +43,7 @@ public class AssignmentController {
     @Autowired
     private ValidationService validationService;
     @GetMapping
+    @Timed(value = "http.assignments.get", description = "Time taken to get assignments")
     public HttpEntity<List<Assignment>> getAllAssignments(HttpServletRequest request,
                                                           @RequestBody @Nullable String body) {
         if(request.getQueryString()!=null || body!=null){

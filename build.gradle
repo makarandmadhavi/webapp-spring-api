@@ -46,6 +46,8 @@ dependencies {
 	implementation("software.amazon.awssdk:sso")
 	implementation("software.amazon.awssdk:ssooidc")
 
+	implementation 'io.micrometer:micrometer-registry-prometheus:1.10.5'
+
 	implementation 'com.intuit.karate:karate-core:1.4.0'
 	testImplementation 'com.intuit.karate:karate-junit5:1.4.0'
 

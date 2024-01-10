@@ -1,5 +1,7 @@
 package tech.stark.webapp.security;
 
+import io.micrometer.core.aop.TimedAspect;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -38,7 +40,7 @@ public class SecurityConfiguration {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.csrf().disable()
                 .authenticationProvider(authenticationProvider())
-                .authorizeHttpRequests(authorize -> authorize.requestMatchers("/healthz","/actuator/metrics/**")
+                .authorizeHttpRequests(authorize -> authorize.requestMatchers("/healthz","/actuator/**")
                         .permitAll())
                 .authorizeHttpRequests(authorize -> authorize.requestMatchers("/v1/**")
                         .authenticated())
@@ -53,5 +55,10 @@ public class SecurityConfiguration {
         JdbcUserDetailsManager jdbcUserDetailsManager = new JdbcUserDetailsManager(dataSource);
         jdbcUserDetailsManager.setUsersByUsernameQuery("select email,password,'true' as enabled from account where email= ?");
         return jdbcUserDetailsManager;
+    }
+
+    @Bean
+    public TimedAspect timedAspect(MeterRegistry registry) {
+        return new TimedAspect(registry);
     }
 }
